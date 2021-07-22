@@ -4,16 +4,16 @@
 
 ### Hackthebox
 
-![](https://raw.githubusercontent.com/sec-balkan/Machines/main/img/0_wvqi6ZlwNfQIkYqA.png?token=AORNDLCZFCAABYL5UDQIVQTAPVEKY)
+![](https://raw.githubusercontent.com/sec-balkan/Vulnerable_Machines_writeups/main/img/0_wvqi6ZlwNfQIkYqA.png)
 
 ### Vulnerable By Design - VulnHub
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/sec-balkan/Machines/main/img/vulnhub.png?token=AORNDLAUPEN5Z3TNSESSMILAPVEUM" />
+  <img src="https://raw.githubusercontent.com/sec-balkan/Vulnerable_Machines_writeups/main/img/vulnhub.png" />
 </p>
 
 ### TryHackMe
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/sec-balkan/Machines/main/img/THMlogo.png?token=AORNDLGEGC5ETIAL4ZYDEALAPVE5Q" />
+  <img src="https://raw.githubusercontent.com/sec-balkan/Vulnerable_Machines_writeups/main/img/THMlogo.png" />
 </p>
